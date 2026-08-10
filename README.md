@@ -8,6 +8,18 @@ A tiny open-source macOS desktop cat.
 
 It floats above your desktop, reacts to the mouse and keyboard, and can be steered by local agent hooks (`pawctl`). Inspired by the *idea* of desktop companions — **all artwork, animations, branding, and code here are original**.
 
+## Download
+
+**[Download Desk Paw for macOS →](https://github.com/klockitier/desk-paw/releases/latest)**
+
+Grab the latest `.dmg` from [Releases](https://github.com/klockitier/desk-paw/releases/latest) (Apple Silicon and Intel builds).
+
+1. Open the `.dmg` and drag **Desk Paw** into Applications.
+2. First launch is unsigned: right-click the app → **Open** (or run `xattr -cr "/Applications/Desk Paw.app"`).
+3. Optional: allow Accessibility / Input Monitoring if you want the cat to notice typing across other apps.
+
+Prefer building from source? Jump to [Install](#install).
+
 ## Why
 
 Coding agents and long desktop sessions feel more alive with a small companion that notices when you type, when you wait, and when something finishes. This MVP is intentionally minimal so the behavior loop is easy to extend.
@@ -20,6 +32,8 @@ Coding agents and long desktop sessions feel more alive with a small companion t
 - Xcode Command Line Tools
 
 ## Install
+
+For a ready-made app, use [Download](#download). To develop or build yourself:
 
 ```bash
 npm install

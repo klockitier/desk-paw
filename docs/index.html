@@ -116,6 +116,12 @@
         letter-spacing: -0.02em;
       }
 
+      .top-links {
+        display: flex;
+        gap: 1.1rem;
+        align-items: center;
+      }
+
       .topbar a.ghost {
         font-size: 0.9rem;
         font-weight: 500;
@@ -528,7 +534,10 @@
       <header class="hero">
         <div class="topbar">
           <div class="mark">Desk Paw</div>
-          <a class="ghost" href="https://github.com/klockitier/desk-paw">GitHub</a>
+          <nav class="top-links" aria-label="Primary">
+            <a class="ghost" href="https://github.com/klockitier/desk-paw/releases/latest">Download</a>
+            <a class="ghost" href="https://github.com/klockitier/desk-paw">GitHub</a>
+          </nav>
         </div>
 
         <div class="hero-stage">
@@ -539,7 +548,7 @@
               cheers when your agents finish.
             </p>
             <div class="cta-row">
-              <a class="btn" href="https://github.com/klockitier/desk-paw#install">Get the cat</a>
+              <a class="btn" href="https://github.com/klockitier/desk-paw/releases/latest">Download for Mac</a>
               <a class="btn btn-quiet" href="#alive">See how it feels</a>
             </div>
           </div>
@@ -608,7 +617,8 @@
         <h2 class="brand-end">Desk Paw</h2>
         <p>Original art. Open source. Built for the long session.</p>
         <div class="cta-row">
-          <a class="btn" href="https://github.com/klockitier/desk-paw">Open the repo</a>
+          <a class="btn" href="https://github.com/klockitier/desk-paw/releases/latest">Download for Mac</a>
+          <a class="btn btn-quiet" href="https://github.com/klockitier/desk-paw">Open the repo</a>
         </div>
       </section>
 
