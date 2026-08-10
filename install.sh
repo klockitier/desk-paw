@@ -14,8 +14,8 @@ fi
 
 arch="$(uname -m)"
 case "$arch" in
-  arm64) asset_suffix="aarch64.dmg" ;;
-  x86_64) asset_suffix="x64.dmg" ;;
+  arm64) asset_suffix="aarch64.app.tar.gz" ;;
+  x86_64) asset_suffix="x64.app.tar.gz" ;;
   *)
     echo "Unsupported Mac architecture: $arch"
     exit 1
@@ -23,18 +23,14 @@ case "$arch" in
 esac
 
 tmp="$(mktemp -d)"
-mount_point="${tmp}/volume"
-cleanup() {
-  if [[ -d "$mount_point" ]]; then
-    hdiutil detach "$mount_point" -quiet >/dev/null 2>&1 || true
-  fi
-  rm -rf "$tmp"
-}
-trap cleanup EXIT
+trap 'rm -rf "$tmp"' EXIT
 
 echo "→ Finding latest Desk Paw release…"
 api="https://api.github.com/repos/${REPO}/releases/latest"
-dmg_url="$(
+# Close stdin so a `curl | bash` pipe can't feed the rest of this script into child commands.
+exec </dev/null
+
+archive_url="$(
   python3 - "$api" "$asset_suffix" <<'PY'
 import json, sys, urllib.request
 api, suffix = sys.argv[1], sys.argv[2]
@@ -49,35 +45,36 @@ raise SystemExit(f"No release asset ending in {suffix}")
 PY
 )"
 
-dmg_path="${tmp}/DeskPaw.dmg"
-echo "→ Downloading…"
-curl -fL --progress-bar "$dmg_url" -o "$dmg_path"
+archive_path="${tmp}/DeskPaw.app.tar.gz"
+echo "→ Downloading (~4–5 MB from GitHub)…"
+curl -fL --progress-bar "$archive_url" -o "$archive_path"
 
 echo "→ Installing to /Applications…"
-mkdir -p "$mount_point"
-hdiutil attach "$dmg_path" -nobrowse -readonly -mountpoint "$mount_point" >/dev/null
+extract_dir="${tmp}/extract"
+mkdir -p "$extract_dir"
+tar -xzf "$archive_path" -C "$extract_dir"
 
-src_app=""
-# Prefer an exact match; fall back to the only .app in the volume.
-if [[ -d "${mount_point}/${APP_NAME}" ]]; then
-  src_app="${mount_point}/${APP_NAME}"
-else
-  while IFS= read -r -d '' candidate; do
-    src_app="$candidate"
-    break
-  done < <(find "$mount_point" -maxdepth 2 -name "*.app" -print0)
+src_app="${extract_dir}/${APP_NAME}"
+if [[ ! -d "$src_app" ]]; then
+  # Fallback: first .app directory in the archive root
+  for candidate in "$extract_dir"/*.app; do
+    if [[ -d "$candidate" ]]; then
+      src_app="$candidate"
+      break
+    fi
+  done
 fi
 
-if [[ -z "$src_app" || ! -d "$src_app" ]]; then
-  echo "Could not find Desk Paw.app inside the DMG."
+if [[ ! -d "$src_app" ]]; then
+  echo "Could not find Desk Paw.app inside the release archive."
   exit 1
 fi
 
-# Replace any previous install
 if [[ -e "$DEST" ]]; then
   rm -rf "$DEST"
 fi
-cp -R "$src_app" "$DEST"
+# ditto preserves macOS app bundle metadata better than cp -R
+ditto "$src_app" "$DEST"
 
 echo "→ Clearing macOS quarantine so it opens without the malware dialog…"
 xattr -cr "$DEST"
