@@ -398,10 +398,15 @@
         background: var(--apricot);
       }
 
-      .install-code {
+      .install-block {
+        position: relative;
         margin: 1.25rem 0 0;
-        padding: 1rem 1.15rem;
         max-width: 40rem;
+      }
+
+      .install-code {
+        margin: 0;
+        padding: 1rem 5.5rem 1rem 1.15rem;
         overflow-x: auto;
         border-radius: 0.55rem;
         background: color-mix(in srgb, var(--ink) 88%, #0f6e6a);
@@ -414,6 +419,32 @@
       .install-code code {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         white-space: pre;
+      }
+
+      .copy-btn {
+        position: absolute;
+        top: 0.65rem;
+        right: 0.65rem;
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        padding: 0.45rem 0.75rem;
+        border-radius: 0.4rem;
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: color-mix(in srgb, #fff 14%, transparent);
+        color: #f4f7f5;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+
+      .copy-btn:hover {
+        background: color-mix(in srgb, #fff 22%, transparent);
+      }
+
+      .copy-btn.is-copied {
+        background: var(--teal);
+        color: #f7fffd;
       }
 
       .final {
@@ -611,7 +642,10 @@
           Pastes into Terminal, installs the right Mac build, clears Gatekeeper,
           and launches Desk Paw:
         </p>
-        <pre class="install-code"><code>curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh -o /tmp/install-desk-paw.sh && bash /tmp/install-desk-paw.sh</code></pre>
+        <div class="install-block">
+          <pre class="install-code"><code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh -o /tmp/install-desk-paw.sh &amp;&amp; bash /tmp/install-desk-paw.sh</code></pre>
+          <button type="button" class="copy-btn" id="copy-install" aria-label="Copy install command">Copy</button>
+        </div>
         <p class="section-copy">
           Prefer a file?
           <a href="https://github.com/klockitier/desk-paw/releases/latest">Download the DMG</a>
@@ -750,6 +784,31 @@
         if (hero) hero.src = frames.idle[0];
         if (demo) demo.src = frames.walk[0];
         if (type) type.src = frames.typing[0];
+      }
+
+      const copyBtn = document.getElementById("copy-install");
+      const installCmd = document.getElementById("install-cmd");
+      if (copyBtn && installCmd) {
+        copyBtn.addEventListener("click", async () => {
+          const text = installCmd.textContent.trim();
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            const range = document.createRange();
+            range.selectNodeContents(installCmd);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand("copy");
+            sel.removeAllRanges();
+          }
+          copyBtn.textContent = "Copied";
+          copyBtn.classList.add("is-copied");
+          window.setTimeout(() => {
+            copyBtn.textContent = "Copy";
+            copyBtn.classList.remove("is-copied");
+          }, 1600);
+        });
       }
     </script>
   </body>
