@@ -10,13 +10,16 @@ It floats above your desktop, reacts to the mouse and keyboard, and can be steer
 
 ## Download
 
-**[Download Desk Paw for macOS →](https://github.com/klockitier/desk-paw/releases/latest)**
+Install in one step (downloads the right Mac build, puts it in Applications, and
+clears the Gatekeeper quarantine so it opens):
 
-Grab the latest `.dmg` from [Releases](https://github.com/klockitier/desk-paw/releases/latest) (Apple Silicon and Intel builds).
+```bash
+curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh | bash
+```
 
-1. Open the `.dmg` and drag **Desk Paw** into Applications.
-2. First launch is unsigned: right-click the app → **Open** (or run `xattr -cr "/Applications/Desk Paw.app"`).
-3. Optional: allow Accessibility / Input Monitoring if you want the cat to notice typing across other apps.
+Or grab a `.dmg` from **[Releases](https://github.com/klockitier/desk-paw/releases/latest)** and drag it into Applications yourself. Unsigned builds need a one-time quarantine clear — the script above does that for you.
+
+Optional after install: allow Accessibility / Input Monitoring if you want the cat to notice typing across other apps.
 
 Prefer building from source? Jump to [Install](#install).
 
@@ -95,9 +98,9 @@ If needed, also check **Input Monitoring**.
 
 ## Cat artwork
 
-The walker cat renders pre-rendered frames from `src/assets/cat/`, sliced out of a
-single reference sprite sheet. Each animation exists in three views — `front`,
-`left`, `right` — so the cat keeps the same identity whichever way it faces:
+The walker cat renders pre-rendered frames from `src/assets/cat/`. Each animation
+exists in three views — `front`, `left`, `right` — so the cat keeps the same
+identity whichever way it faces:
 
 | Animation | Frames (front / left / right) |
 | --- | --- |
@@ -109,77 +112,14 @@ single reference sprite sheet. Each animation exists in three views — `front`,
 | `happy` | 2 / 1 / 1 |
 | `dragged` | 3 / 3 / 3 |
 | `overheated` | 1 / 1 / 1 |
+| `jump_up` | 8 / 8 / 8 / 8 (also `back`) |
+| `jump_down` | 8 / 8 / 8 / 6 (also `back`) |
+| `typing_calm` | 8 / 7 / 7 |
+| `typing_aggressive` | 6 / 6 / 6 |
+| `typing_exhausted` | 1 / 1 / 1 |
 
-> Note: the source sheet’s Walk/Left row contains a misplaced typing pose in the
-> middle; that frame is skipped on purpose so walk/left stays a clean 4-frame cycle.
-
-To re-slice after editing the sheet:
-
-```bash
-python3 -m venv .venv && ./.venv/bin/pip install -r tools/requirements.txt
-./.venv/bin/python3 tools/extract_sprites.py
-./.venv/bin/python3 tools/extract_typing.py  # run after extract_sprites.py
-./.venv/bin/python3 tools/extract_jumps.py   # run last — it sizes the shared canvas
-```
-
-`tools/keying.py` handles the alpha for both black-background sheets: edge pixels are
-un-premultiplied from the black they were drawn on (a plain threshold bakes that
-black in as a dark fringe on light desktops), enclosed dark pixels like pupils are
-filled so they never show through, and a uniform 1px outline is drawn round the
-silhouette — the sheets outline dark fur heavily but leave the white chest and paws
-almost bare, so without it the cat looks half-outlined.
-
-The script uses **manual bounding boxes** (not equal-grid crops), keys out the black
-background, drops labels, writes per-animation folders under `assets/cat/`, plus
-`cat_atlas.png`, `cat_atlas.json`, `extracted_preview.png`, and `preview.html`.
-Flat copies for the Vite app land in `src/assets/cat/` with `manifest.ts`.
-
-### Jump artwork
-
-`tools/extract_jumps.py` slices `assets/source/cat_jump_sheet.png`. It finds every
-cat as a connected blob (no grid), re-attaches nearby dust puffs and motion
-streaks, and pastes each frame at native resolution onto one shared canvas
-anchored on the cat's **feet**, so the sprite never jitters while the window
-moves along the jump arc. It also re-pads the other animations onto that canvas
-so every frame shares one ground line — hence the run-order note above.
-
-| Animation | Frames (front / left / right / back) |
-| --- | --- |
-| `jump_up` | 8 / 8 / 8 / 8 |
-| `jump_down` | 8 / 8 / 8 / 6 |
-
-> The sheet's `Left`/`Right` captions are swapped relative to the pose; files are
-> named by the direction the cat actually faces. `jump_down/back` genuinely has
-> only 6 frames in the source (its two mid-air frames are missing).
-
-Output: `assets/cat/jump/{up,down}/{front,left,right,back}/NNN.png`, plus
-`jump.json` (frame order, fps, loop), `jump_contact_sheet.png`, and
-`jump_preview.html` (play / pause / step / fps over a checkerboard).
-
-### Typing artwork
-
-`tools/extract_typing.py` slices `assets/source/cat_typing_sprite_sheet.png` into a
-calm and an aggressive typing animation, three facings each, plus standalone
-reactions, desk props, and effect glyphs. Frames are anchored on the **desk line and
-keyboard centre**, not the raw bounding box, so the paws move while the cat and
-keyboard stay put even when lightning or steam juts out one side.
-
-| Animation | Frames (front / left / right) | Rate |
-| --- | --- | --- |
-| `typing_calm` | 8 / 7 / 7 | 9 fps, loops |
-| `typing_aggressive` | 6 / 6 / 6 | 12 fps, escalates |
-| `typing_exhausted` | 1 / 1 / 1 | held pose |
-
-The last aggressive frame (the collapsed cat with Zzz) is split into
-`typing_exhausted` so the rage loop never cycles back through a sleeping pose.
-
-Output: `assets/cat/typing/{calm,aggressive}/{front,left,right}/NNN.png`, plus
-`typing.json` (start/loop/end phases and fps), `typing_contact_sheet.png`,
-`preview.html`, and `assets/cat/{reactions,props,effects}/`. Left/right sprites are
-the sheet's own artwork — nothing is CSS-mirrored, so tail and fur markings stay
-correct. The cat always types in a **side view** — the front frames stay in the
-sheet as a fallback but are never selected, since the desk only reads from the
-side. When the cat is idle-facing-front, typing uses the last side it faced.
+The cat always types in a **side view** — when idle-facing-front, typing uses the
+last side it faced.
 
 ### Typing intensity
 
@@ -200,12 +140,6 @@ down) so one slow keystroke mid-burst doesn't flip the animation back and forth.
 react to pace. Priority is
 `ERROR`/`OVERHEATED` → typing → agent state → idle: the cat can type while an agent
 is `WORKING` and returns to that state afterwards.
-
-Run the state-machine checks with:
-
-```bash
-npm test
-```
 
 ### State machine
 

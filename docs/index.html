@@ -386,6 +386,24 @@
         background: var(--apricot);
       }
 
+      .install-code {
+        margin: 1.25rem 0 0;
+        padding: 1rem 1.15rem;
+        max-width: 40rem;
+        overflow-x: auto;
+        border-radius: 0.55rem;
+        background: color-mix(in srgb, var(--ink) 88%, #0f6e6a);
+        color: #f4f7f5;
+        font-size: 0.88rem;
+        line-height: 1.55;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 8%, transparent);
+      }
+
+      .install-code code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        white-space: pre;
+      }
+
       .final {
         padding: 5rem 0 6rem;
         text-align: center;
@@ -548,8 +566,8 @@
               cheers when your agents finish.
             </p>
             <div class="cta-row">
-              <a class="btn" href="https://github.com/klockitier/desk-paw/releases/latest">Download for Mac</a>
-              <a class="btn btn-quiet" href="#alive">See how it feels</a>
+              <a class="btn" href="#download">Install on Mac</a>
+              <a class="btn btn-quiet" href="https://github.com/klockitier/desk-paw/releases/latest">Get the DMG</a>
             </div>
           </div>
 
@@ -562,6 +580,22 @@
           </div>
         </div>
       </header>
+
+      <section id="download">
+        <p class="section-kicker">Download</p>
+        <h2 class="section-title">One command</h2>
+        <p class="section-copy">
+          Pastes into Terminal, installs the right Mac build, clears Gatekeeper,
+          and launches Desk Paw:
+        </p>
+        <pre class="install-code"><code>curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh | bash</code></pre>
+        <p class="section-copy">
+          Prefer a file?
+          <a href="https://github.com/klockitier/desk-paw/releases/latest">Download the DMG</a>
+          instead — the script above is just the painless path around Apple’s
+          unsigned-app warning.
+        </p>
+      </section>
 
       <section id="alive">
         <div class="split">
@@ -617,7 +651,7 @@
         <h2 class="brand-end">Desk Paw</h2>
         <p>Original art. Open source. Built for the long session.</p>
         <div class="cta-row">
-          <a class="btn" href="https://github.com/klockitier/desk-paw/releases/latest">Download for Mac</a>
+          <a class="btn" href="#download">Install on Mac</a>
           <a class="btn btn-quiet" href="https://github.com/klockitier/desk-paw">Open the repo</a>
         </div>
       </section>

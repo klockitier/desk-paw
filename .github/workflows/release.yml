@@ -57,12 +57,16 @@ jobs:
           releaseBody: |
             Download a macOS build below and open the `.dmg`.
 
-            **First launch (unsigned build):** right-click the app → **Open**, or run:
+            **Gatekeeper (“Apple could not verify…”):** this build is unsigned. After installing to Applications:
+
             ```bash
             xattr -cr "/Applications/Desk Paw.app"
+            open "/Applications/Desk Paw.app"
             ```
 
-            Apple Silicon and Intel builds are both attached when the release finishes.
+            Or right-click → **Open** → **Open**. On newer macOS: **System Settings → Privacy & Security → Open Anyway**.
+
+            Apple Silicon (`aarch64`) and Intel (`x64`) DMGs are both attached.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

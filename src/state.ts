@@ -68,7 +68,7 @@ const OVERRIDE_STATES: PetState[] = ["ERROR", "OVERHEATED"];
 
 export class PetStateMachine {
   state: PetState = "IDLE";
-  /** Clock seam — overridden by tools/state-check.mjs to drive time deterministically. */
+  /** Clock seam — override in tests to drive time deterministically. */
   now: () => number = () => Date.now();
   /** 0 = not typing, 1 = flat out. Read by anything that wants to react to pace. */
   typingIntensity = 0;

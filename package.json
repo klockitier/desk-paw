@@ -8,9 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "pawctl": "node ./pawctl.mjs",
-    "test": "node tools/state-check.mjs",
-    "sprites": "./.venv/bin/python3 tools/sync_manifest.py"
+    "pawctl": "node ./pawctl.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2"
