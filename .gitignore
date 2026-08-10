@@ -35,3 +35,7 @@ target
 *.tmp
 **/__pycache__/
 *.pyc
+
+# Unused mobile icon outputs from `tauri icon`
+src-tauri/icons/ios/
+src-tauri/icons/android/

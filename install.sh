@@ -1,86 +1,81 @@
 #!/usr/bin/env bash
-# Desk Paw — one-step macOS installer
-# Usage:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh)"
+# Desk Paw — macOS installer (no Python, no DMG mount, safe one-liner)
+#
+# Install with:
+#   curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh -o /tmp/install-desk-paw.sh && bash /tmp/install-desk-paw.sh
+#
 set -euo pipefail
 
 REPO="klockitier/desk-paw"
 APP_NAME="Desk Paw.app"
 DEST="/Applications/${APP_NAME}"
 
-if [[ "$(uname -s)" != "Darwin" ]]; then
-  echo "Desk Paw’s prebuilt installer is macOS-only right now."
+die() {
+  echo "✗ $*" >&2
   exit 1
-fi
+}
+
+on_err() {
+  die "Install failed (line $1)."
+}
+trap 'on_err $LINENO' ERR
+
+[[ "$(uname -s)" == "Darwin" ]] || die "Desk Paw’s installer is macOS-only."
 
 arch="$(uname -m)"
 case "$arch" in
-  arm64) asset_suffix="aarch64.app.tar.gz" ;;
-  x86_64) asset_suffix="x64.app.tar.gz" ;;
-  *)
-    echo "Unsupported Mac architecture: $arch"
-    exit 1
-    ;;
+  arm64) archive_name="Desk.Paw_aarch64.app.tar.gz" ;;
+  x86_64) archive_name="Desk.Paw_x64.app.tar.gz" ;;
+  *) die "Unsupported Mac architecture: $arch" ;;
 esac
 
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+# Stable GitHub “latest” URL — no API / Python needed.
+download_url="https://github.com/${REPO}/releases/latest/download/${archive_name}"
 
-echo "→ Finding latest Desk Paw release…"
-api="https://api.github.com/repos/${REPO}/releases/latest"
+tmp="$(mktemp -d /tmp/desk-paw-install.XXXXXX)"
+cleanup() { rm -rf "$tmp"; }
+trap cleanup EXIT
+trap 'on_err $LINENO' ERR
 
-archive_url="$(
-  python3 - "$api" "$asset_suffix" <<'PY'
-import json, sys, urllib.request
-api, suffix = sys.argv[1], sys.argv[2]
-with urllib.request.urlopen(api) as r:
-    data = json.load(r)
-for asset in data.get("assets", []):
-    name = asset.get("name", "")
-    if name.endswith(suffix):
-        print(asset["browser_download_url"])
-        raise SystemExit(0)
-raise SystemExit(f"No release asset ending in {suffix}")
-PY
-)"
+echo "→ Desk Paw installer"
+echo "  arch: $arch"
+echo "  package: $archive_name"
 
-archive_path="${tmp}/DeskPaw.app.tar.gz"
-echo "→ Downloading (~4–5 MB from GitHub)…"
-curl -fL --progress-bar "$archive_url" -o "$archive_path"
+archive_path="${tmp}/${archive_name}"
+echo "→ Downloading from GitHub Releases (~4–5 MB)…"
+curl -fL --connect-timeout 30 --retry 3 --retry-delay 2 \
+  --progress-bar "$download_url" -o "$archive_path" \
+  || die "Download failed. Check https://github.com/${REPO}/releases/latest"
 
-echo "→ Installing to /Applications…"
+[[ -s "$archive_path" ]] || die "Downloaded file is empty."
+
+echo "→ Unpacking…"
 extract_dir="${tmp}/extract"
 mkdir -p "$extract_dir"
-tar -xzf "$archive_path" -C "$extract_dir"
+tar -xzf "$archive_path" -C "$extract_dir" || die "Could not unpack the archive."
 
 src_app="${extract_dir}/${APP_NAME}"
 if [[ ! -d "$src_app" ]]; then
-  # Fallback: first .app directory in the archive root
-  for candidate in "$extract_dir"/*.app; do
-    if [[ -d "$candidate" ]]; then
-      src_app="$candidate"
-      break
-    fi
-  done
+  shopt -s nullglob
+  apps=("$extract_dir"/*.app)
+  shopt -u nullglob
+  [[ ${#apps[@]} -gt 0 && -d "${apps[0]}" ]] || die "Desk Paw.app missing from the archive."
+  src_app="${apps[0]}"
 fi
 
-if [[ ! -d "$src_app" ]]; then
-  echo "Could not find Desk Paw.app inside the release archive."
-  exit 1
-fi
-
+echo "→ Installing to ${DEST}…"
 if [[ -e "$DEST" ]]; then
   rm -rf "$DEST"
 fi
-# ditto preserves macOS app bundle metadata better than cp -R
-ditto "$src_app" "$DEST"
+ditto "$src_app" "$DEST" || die "Could not copy app into /Applications (permissions?)."
 
-echo "→ Clearing macOS quarantine so it opens without the malware dialog…"
-xattr -cr "$DEST"
+echo "→ Clearing Gatekeeper quarantine…"
+xattr -cr "$DEST" || true
 
-echo "→ Launching Desk Paw…"
+echo "→ Launching…"
 open "$DEST"
 
 echo
-echo "Installed: $DEST"
-echo "Optional: System Settings → Privacy & Security → Accessibility (for typing detection)."
+echo "✓ Installed: $DEST"
+echo "  Optional: System Settings → Privacy & Security → Accessibility"
+echo "  (so the cat can notice typing in other apps)."

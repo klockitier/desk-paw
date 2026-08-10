@@ -10,14 +10,13 @@ It floats above your desktop, reacts to the mouse and keyboard, and can be steer
 
 ## Download
 
-Install in one step (downloads the right Mac build, puts it in Applications, and
-clears the Gatekeeper quarantine so it opens):
-
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh)"
+curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh -o /tmp/install-desk-paw.sh && bash /tmp/install-desk-paw.sh
 ```
 
-Or grab a `.dmg` from **[Releases](https://github.com/klockitier/desk-paw/releases/latest)** and drag it into Applications yourself. Unsigned builds need a one-time quarantine clear — the script above does that for you.
+That downloads the right Mac build, installs it to Applications, clears Gatekeeper, and launches Desk Paw.
+
+Or grab a `.dmg` from **[Releases](https://github.com/klockitier/desk-paw/releases/latest)**.
 
 Optional after install: allow Accessibility / Input Monitoring if you want the cat to notice typing across other apps.
 
