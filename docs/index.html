@@ -399,21 +399,27 @@
       }
 
       .install-block {
-        position: relative;
+        display: flex;
+        align-items: stretch;
         margin: 1.25rem 0 0;
-        max-width: 40rem;
+        max-width: 42rem;
+        border-radius: 0.55rem;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--ink) 88%, #0f6e6a);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 8%, transparent);
       }
 
       .install-code {
+        flex: 1 1 auto;
+        min-width: 0;
         margin: 0;
-        padding: 1rem 5.5rem 1rem 1.15rem;
+        padding: 1rem 1.1rem;
         overflow-x: auto;
-        border-radius: 0.55rem;
-        background: color-mix(in srgb, var(--ink) 88%, #0f6e6a);
+        background: transparent;
         color: #f4f7f5;
         font-size: 0.88rem;
         line-height: 1.55;
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 8%, transparent);
+        box-shadow: none;
       }
 
       .install-code code {
@@ -422,29 +428,45 @@
       }
 
       .copy-btn {
-        position: absolute;
-        top: 0.65rem;
-        right: 0.65rem;
+        flex: 0 0 auto;
         appearance: none;
         border: 0;
+        border-left: 1px solid color-mix(in srgb, #fff 12%, transparent);
         cursor: pointer;
-        padding: 0.45rem 0.75rem;
-        border-radius: 0.4rem;
-        font-family: var(--font-body);
-        font-size: 0.78rem;
-        font-weight: 600;
-        background: color-mix(in srgb, #fff 14%, transparent);
-        color: #f4f7f5;
+        width: 2.75rem;
+        display: grid;
+        place-items: center;
+        background: color-mix(in srgb, #fff 6%, transparent);
+        color: #d7e4df;
         transition: background 0.15s ease, color 0.15s ease;
       }
 
       .copy-btn:hover {
-        background: color-mix(in srgb, #fff 22%, transparent);
+        background: color-mix(in srgb, #fff 12%, transparent);
+        color: #fff;
       }
 
       .copy-btn.is-copied {
         background: var(--teal);
         color: #f7fffd;
+      }
+
+      .copy-btn svg {
+        width: 1.05rem;
+        height: 1.05rem;
+        display: block;
+      }
+
+      .copy-btn .icon-check {
+        display: none;
+      }
+
+      .copy-btn.is-copied .icon-copy {
+        display: none;
+      }
+
+      .copy-btn.is-copied .icon-check {
+        display: block;
       }
 
       .final {
@@ -644,7 +666,15 @@
         </p>
         <div class="install-block">
           <pre class="install-code"><code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh -o /tmp/install-desk-paw.sh &amp;&amp; bash /tmp/install-desk-paw.sh</code></pre>
-          <button type="button" class="copy-btn" id="copy-install" aria-label="Copy install command">Copy</button>
+          <button type="button" class="copy-btn" id="copy-install" aria-label="Copy install command" title="Copy">
+            <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+          </button>
         </div>
         <p class="section-copy">
           Prefer a file?
@@ -802,10 +832,8 @@
             document.execCommand("copy");
             sel.removeAllRanges();
           }
-          copyBtn.textContent = "Copied";
           copyBtn.classList.add("is-copied");
           window.setTimeout(() => {
-            copyBtn.textContent = "Copy";
             copyBtn.classList.remove("is-copied");
           }, 1600);
         });
