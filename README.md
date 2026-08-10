@@ -39,6 +39,8 @@ Coding agents and long desktop sessions feel more alive with a small companion t
 For a ready-made app, use [Download](#download). To develop or build yourself:
 
 ```bash
+git clone https://github.com/klockitier/desk-paw.git
+cd desk-paw
 npm install
 ```
 

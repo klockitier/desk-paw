@@ -23,8 +23,9 @@ case "$arch" in
 esac
 
 tmp="$(mktemp -d)"
+mount_point="${tmp}/volume"
 cleanup() {
-  if [[ -n "${mount_point:-}" && -d "$mount_point" ]]; then
+  if [[ -d "$mount_point" ]]; then
     hdiutil detach "$mount_point" -quiet >/dev/null 2>&1 || true
   fi
   rm -rf "$tmp"
@@ -53,14 +54,20 @@ echo "→ Downloading…"
 curl -fL --progress-bar "$dmg_url" -o "$dmg_path"
 
 echo "→ Installing to /Applications…"
-attach_out="$(hdiutil attach "$dmg_path" -nobrowse -readonly)"
-mount_point="$(printf '%s\n' "$attach_out" | awk '/\/Volumes\//{print $3; exit}')"
-if [[ -z "$mount_point" || ! -d "$mount_point" ]]; then
-  # Fallback: last field on the mount line
-  mount_point="$(printf '%s\n' "$attach_out" | awk 'END{print $NF}')"
+mkdir -p "$mount_point"
+hdiutil attach "$dmg_path" -nobrowse -readonly -mountpoint "$mount_point" >/dev/null
+
+src_app=""
+# Prefer an exact match; fall back to the only .app in the volume.
+if [[ -d "${mount_point}/${APP_NAME}" ]]; then
+  src_app="${mount_point}/${APP_NAME}"
+else
+  while IFS= read -r -d '' candidate; do
+    src_app="$candidate"
+    break
+  done < <(find "$mount_point" -maxdepth 2 -name "*.app" -print0)
 fi
 
-src_app="$(find "$mount_point" -maxdepth 2 -name "*.app" -print -quit)"
 if [[ -z "$src_app" || ! -d "$src_app" ]]; then
   echo "Could not find Desk Paw.app inside the DMG."
   exit 1
