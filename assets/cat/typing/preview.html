@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8"><title>Typing frames</title>
+<style>
+  body{background:#15171d;color:#e6e8ef;font:14px system-ui;margin:24px}
+  section{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .card{margin:0;background:#20232c;border-radius:10px;padding:10px}
+  figcaption{margin-bottom:6px;opacity:.7}
+  .stage{width:260px;height:220px;display:grid;place-items:center;
+    background:repeating-conic-gradient(#3a3f4b 0 25%,#2a2e38 0 50%) 0 0/20px 20px}
+  .stage img{image-rendering:pixelated;transform:scale(1.5)}
+  .ctl{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+  button{background:#2f3542;color:#e6e8ef;border:0;border-radius:6px;padding:4px 8px;cursor:pointer}
+  input{width:52px;background:#2f3542;color:#e6e8ef;border:0;border-radius:6px;padding:3px}
+  .n{opacity:.6}
+</style>
+<h2>Typing Calm</h2><section><figure class="card" data-dir="calm/front" data-frames='["001.png", "002.png", "003.png", "004.png", "005.png", "006.png", "007.png", "008.png"]' data-fps="9"><figcaption>front</figcaption><div class="stage"><img alt=""></div><div class="ctl"><button data-act="play">▶</button><button data-act="pause">❚❚</button><button data-act="prev">◀</button><button data-act="next">▶|</button><label>fps <input type="number" min="1" max="30" value="9"></label><span class="n"></span></div></figure><figure class="card" data-dir="calm/left" data-frames='["001.png", "002.png", "003.png", "004.png", "005.png", "006.png", "007.png"]' data-fps="9"><figcaption>left</figcaption><div class="stage"><img alt=""></div><div class="ctl"><button data-act="play">▶</button><button data-act="pause">❚❚</button><button data-act="prev">◀</button><button data-act="next">▶|</button><label>fps <input type="number" min="1" max="30" value="9"></label><span class="n"></span></div></figure><figure class="card" data-dir="calm/right" data-frames='["001.png", "002.png", "003.png", "004.png", "005.png", "006.png", "007.png"]' data-fps="9"><figcaption>right</figcaption><div class="stage"><img alt=""></div><div class="ctl"><button data-act="play">▶</button><button data-act="pause">❚❚</button><button data-act="prev">◀</button><button data-act="next">▶|</button><label>fps <input type="number" min="1" max="30" value="9"></label><span class="n"></span></div></figure></section><h2>Typing Aggressive</h2><section><figure class="card" data-dir="aggressive/front" data-frames='["001.png", "002.png", "003.png", "004.png", "005.png", "006.png", "007.png"]' data-fps="12"><figcaption>front</figcaption><div class="stage"><img alt=""></div><div class="ctl"><button data-act="play">▶</button><button data-act="pause">❚❚</button><button data-act="prev">◀</button><button data-act="next">▶|</button><label>fps <input type="number" min="1" max="30" value="12"></label><span class="n"></span></div></figure><figure class="card" data-dir="aggressive/left" data-frames='["001.png", "002.png", "003.png", "004.png", "005.png", "006.png", "007.png"]' data-fps="12"><figcaption>left</figcaption><div class="stage"><img alt=""></div><div class="ctl"><button data-act="play">▶</button><button data-act="pause">❚❚</button><button data-act="prev">◀</button><button data-act="next">▶|</button><label>fps <input type="number" min="1" max="30" value="12"></label><span class="n"></span></div></figure><figure class="card" data-dir="aggressive/right" data-frames='["001.png", "002.png", "003.png", "004.png", "005.png", "006.png", "007.png"]' data-fps="12"><figcaption>right</figcaption><div class="stage"><img alt=""></div><div class="ctl"><button data-act="play">▶</button><button data-act="pause">❚❚</button><button data-act="prev">◀</button><button data-act="next">▶|</button><label>fps <input type="number" min="1" max="30" value="12"></label><span class="n"></span></div></figure></section>
+<script>
+for (const card of document.querySelectorAll('.card')) {
+  const frames = JSON.parse(card.dataset.frames);
+  const dir = card.dataset.dir + '/';
+  const img = card.querySelector('img'), n = card.querySelector('.n');
+  const fps = card.querySelector('input');
+  let i = 0, timer = null;
+  const show = () => { img.src = dir + frames[i]; n.textContent = `${i + 1}/${frames.length}`; };
+  const step = d => { i = (i + d + frames.length) % frames.length; show(); };
+  const play = () => { stop(); timer = setInterval(() => step(1), 1000 / +fps.value); };
+  const stop = () => { clearInterval(timer); timer = null; };
+  card.querySelector('[data-act=play]').onclick = play;
+  card.querySelector('[data-act=pause]').onclick = stop;
+  card.querySelector('[data-act=prev]').onclick = () => { stop(); step(-1); };
+  card.querySelector('[data-act=next]').onclick = () => { stop(); step(1); };
+  fps.onchange = () => { if (timer) play(); };
+  show(); play();
+}
+</script>

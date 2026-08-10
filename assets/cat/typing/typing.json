@@ -1,0 +1,161 @@
+{
+  "typing_calm": {
+    "front": {
+      "frames": [
+        "001.png",
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png",
+        "008.png"
+      ],
+      "start": [
+        "001.png"
+      ],
+      "loop": [
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png",
+        "008.png"
+      ],
+      "end": [],
+      "fps": 9,
+      "loop_forever": true
+    },
+    "left": {
+      "frames": [
+        "001.png",
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png"
+      ],
+      "start": [
+        "001.png"
+      ],
+      "loop": [
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png"
+      ],
+      "end": [],
+      "fps": 9,
+      "loop_forever": true
+    },
+    "right": {
+      "frames": [
+        "001.png",
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png"
+      ],
+      "start": [
+        "001.png"
+      ],
+      "loop": [
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png"
+      ],
+      "end": [],
+      "fps": 9,
+      "loop_forever": true
+    }
+  },
+  "typing_aggressive": {
+    "front": {
+      "frames": [
+        "001.png",
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png"
+      ],
+      "start": [
+        "001.png",
+        "002.png"
+      ],
+      "loop": [
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png"
+      ],
+      "end": [
+        "007.png"
+      ],
+      "fps": 12,
+      "loop_forever": false
+    },
+    "left": {
+      "frames": [
+        "001.png",
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png"
+      ],
+      "start": [
+        "001.png",
+        "002.png"
+      ],
+      "loop": [
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png"
+      ],
+      "end": [
+        "007.png"
+      ],
+      "fps": 12,
+      "loop_forever": false
+    },
+    "right": {
+      "frames": [
+        "001.png",
+        "002.png",
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png",
+        "007.png"
+      ],
+      "start": [
+        "001.png",
+        "002.png"
+      ],
+      "loop": [
+        "003.png",
+        "004.png",
+        "005.png",
+        "006.png"
+      ],
+      "end": [
+        "007.png"
+      ],
+      "fps": 12,
+      "loop_forever": false
+    }
+  }
+}

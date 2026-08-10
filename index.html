@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Desk Paw</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="root">
+      <div id="cat-classic" class="cat state-idle hidden" aria-label="Classic desktop cat">
+        <div class="body">
+          <div class="ear left"></div>
+          <div class="ear right"></div>
+          <div class="face">
+            <div class="eye left"><div class="pupil"></div></div>
+            <div class="eye right"><div class="pupil"></div></div>
+            <div class="nose"></div>
+            <div class="mouth"></div>
+          </div>
+          <div class="paw left"></div>
+          <div class="paw right"></div>
+          <div class="tail"></div>
+        </div>
+      </div>
+      <div id="cat-walker" class="walker" aria-label="Walking pixel cat">
+        <canvas id="walker-canvas"></canvas>
+      </div>
+      <div id="menu" class="menu hidden" role="menu">
+        <button type="button" data-action="cat-walker">Walker cat</button>
+        <button type="button" data-action="cat-classic">Classic cat</button>
+        <button type="button" data-action="reset">Reset position</button>
+        <button type="button" data-action="idle">Idle</button>
+        <button type="button" data-action="happy">Happy</button>
+        <button type="button" data-action="sleeping">Sleep</button>
+        <button type="button" data-action="quit" class="danger">Quit</button>
+      </div>
+      <div id="status" class="status hidden"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

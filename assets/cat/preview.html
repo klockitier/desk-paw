@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Cat sprite preview</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 24px;
+    font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #12141a; color: #e8e8ef;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 16px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: #1a1d27; border: 1px solid #2c3040; border-radius: 10px;
+    overflow: hidden;
+  }
+  .card header, .card footer { padding: 8px 12px; }
+  .card footer { color: #9aa0b4; border-top: 1px solid #2c3040; }
+  .stage {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    height: 106px;
+    display: grid; place-items: center;
+    background-image:
+      linear-gradient(45deg, #2a2e3a 25%, transparent 25%),
+      linear-gradient(-45deg, #2a2e3a 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #2a2e3a 75%),
+      linear-gradient(-45deg, transparent 75%, #2a2e3a 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    background-color: #222632;
+  }
+  .stage img { width: 126px; height: 106px; image-rendering: pixelated; }
+</style>
+</head>
+<body>
+  <h1>Extracted cat sprites · 126×106</h1>
+  <div class="grid">
+    <section class="card" data-frames='["./idle/front/001.png", "./idle/front/002.png", "./idle/front/003.png", "./idle/front/004.png", "./idle/front/005.png", "./idle/front/006.png"]'>
+  <header><strong>idle</strong> · front · 6 frames</header>
+  <div class="stage"><img alt="idle/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/6</footer>
+</section><section class="card" data-frames='["./idle/left/001.png", "./idle/left/002.png", "./idle/left/003.png", "./idle/left/004.png"]'>
+  <header><strong>idle</strong> · left · 4 frames</header>
+  <div class="stage"><img alt="idle/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/4</footer>
+</section><section class="card" data-frames='["./idle/right/001.png", "./idle/right/002.png", "./idle/right/003.png", "./idle/right/004.png"]'>
+  <header><strong>idle</strong> · right · 4 frames</header>
+  <div class="stage"><img alt="idle/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/4</footer>
+</section><section class="card" data-frames='["./walk/front/001.png", "./walk/front/002.png", "./walk/front/003.png", "./walk/front/004.png", "./walk/front/005.png"]'>
+  <header><strong>walk</strong> · front · 5 frames</header>
+  <div class="stage"><img alt="walk/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/5</footer>
+</section><section class="card" data-frames='["./walk/left/001.png", "./walk/left/002.png", "./walk/left/003.png", "./walk/left/004.png"]'>
+  <header><strong>walk</strong> · left · 4 frames</header>
+  <div class="stage"><img alt="walk/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/4</footer>
+</section><section class="card" data-frames='["./walk/right/001.png", "./walk/right/002.png", "./walk/right/003.png", "./walk/right/004.png"]'>
+  <header><strong>walk</strong> · right · 4 frames</header>
+  <div class="stage"><img alt="walk/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/4</footer>
+</section><section class="card" data-frames='["./run/front/001.png", "./run/front/002.png", "./run/front/003.png", "./run/front/004.png", "./run/front/005.png"]'>
+  <header><strong>run</strong> · front · 5 frames</header>
+  <div class="stage"><img alt="run/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/5</footer>
+</section><section class="card" data-frames='["./run/left/001.png", "./run/left/002.png", "./run/left/003.png", "./run/left/004.png"]'>
+  <header><strong>run</strong> · left · 4 frames</header>
+  <div class="stage"><img alt="run/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/4</footer>
+</section><section class="card" data-frames='["./run/right/001.png", "./run/right/002.png", "./run/right/003.png", "./run/right/004.png"]'>
+  <header><strong>run</strong> · right · 4 frames</header>
+  <div class="stage"><img alt="run/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/4</footer>
+</section><section class="card" data-frames='["./sit/front/001.png", "./sit/front/002.png", "./sit/front/003.png"]'>
+  <header><strong>sit</strong> · front · 3 frames</header>
+  <div class="stage"><img alt="sit/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/3</footer>
+</section><section class="card" data-frames='["./sit/left/001.png", "./sit/left/002.png", "./sit/left/003.png"]'>
+  <header><strong>sit</strong> · left · 3 frames</header>
+  <div class="stage"><img alt="sit/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/3</footer>
+</section><section class="card" data-frames='["./sit/right/001.png", "./sit/right/002.png", "./sit/right/003.png"]'>
+  <header><strong>sit</strong> · right · 3 frames</header>
+  <div class="stage"><img alt="sit/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/3</footer>
+</section><section class="card" data-frames='["./sleep/front/001.png", "./sleep/front/002.png"]'>
+  <header><strong>sleep</strong> · front · 2 frames</header>
+  <div class="stage"><img alt="sleep/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/2</footer>
+</section><section class="card" data-frames='["./sleep/left/001.png"]'>
+  <header><strong>sleep</strong> · left · 1 frames</header>
+  <div class="stage"><img alt="sleep/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/1</footer>
+</section><section class="card" data-frames='["./sleep/right/001.png"]'>
+  <header><strong>sleep</strong> · right · 1 frames</header>
+  <div class="stage"><img alt="sleep/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/1</footer>
+</section><section class="card" data-frames='["./typing/front/001.png", "./typing/front/002.png", "./typing/front/003.png"]'>
+  <header><strong>typing</strong> · front · 3 frames</header>
+  <div class="stage"><img alt="typing/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/3</footer>
+</section><section class="card" data-frames='["./typing/left/001.png", "./typing/left/002.png"]'>
+  <header><strong>typing</strong> · left · 2 frames</header>
+  <div class="stage"><img alt="typing/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/2</footer>
+</section><section class="card" data-frames='["./typing/right/001.png", "./typing/right/002.png"]'>
+  <header><strong>typing</strong> · right · 2 frames</header>
+  <div class="stage"><img alt="typing/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/2</footer>
+</section><section class="card" data-frames='["./happy/front/001.png", "./happy/front/002.png"]'>
+  <header><strong>happy</strong> · front · 2 frames</header>
+  <div class="stage"><img alt="happy/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/2</footer>
+</section><section class="card" data-frames='["./happy/left/001.png"]'>
+  <header><strong>happy</strong> · left · 1 frames</header>
+  <div class="stage"><img alt="happy/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/1</footer>
+</section><section class="card" data-frames='["./happy/right/001.png"]'>
+  <header><strong>happy</strong> · right · 1 frames</header>
+  <div class="stage"><img alt="happy/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/1</footer>
+</section><section class="card" data-frames='["./dragged/front/001.png", "./dragged/front/002.png", "./dragged/front/003.png"]'>
+  <header><strong>dragged</strong> · front · 3 frames</header>
+  <div class="stage"><img alt="dragged/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/3</footer>
+</section><section class="card" data-frames='["./dragged/left/001.png", "./dragged/left/002.png", "./dragged/left/003.png"]'>
+  <header><strong>dragged</strong> · left · 3 frames</header>
+  <div class="stage"><img alt="dragged/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/3</footer>
+</section><section class="card" data-frames='["./dragged/right/001.png", "./dragged/right/002.png", "./dragged/right/003.png"]'>
+  <header><strong>dragged</strong> · right · 3 frames</header>
+  <div class="stage"><img alt="dragged/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/3</footer>
+</section><section class="card" data-frames='["./overheated/front/001.png"]'>
+  <header><strong>overheated</strong> · front · 1 frames</header>
+  <div class="stage"><img alt="overheated/front" /></div>
+  <footer class="meta">frame <span class="n">1</span>/1</footer>
+</section><section class="card" data-frames='["./overheated/left/001.png"]'>
+  <header><strong>overheated</strong> · left · 1 frames</header>
+  <div class="stage"><img alt="overheated/left" /></div>
+  <footer class="meta">frame <span class="n">1</span>/1</footer>
+</section><section class="card" data-frames='["./overheated/right/001.png"]'>
+  <header><strong>overheated</strong> · right · 1 frames</header>
+  <div class="stage"><img alt="overheated/right" /></div>
+  <footer class="meta">frame <span class="n">1</span>/1</footer>
+</section>
+  </div>
+  <script>
+    const FPS = 8;
+    for (const card of document.querySelectorAll('.card')) {
+      const frames = JSON.parse(card.dataset.frames);
+      const img = card.querySelector('img');
+      const n = card.querySelector('.n');
+      let i = 0;
+      const tick = () => {
+        img.src = frames[i];
+        n.textContent = String(i + 1);
+        i = (i + 1) % frames.length;
+      };
+      tick();
+      setInterval(tick, 1000 / FPS);
+    }
+  </script>
+</body>
+</html>
