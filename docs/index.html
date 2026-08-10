@@ -14,7 +14,8 @@
       content="A tiny open-source desktop cat for coding sessions and agent loops."
     />
     <meta property="og:image" content="./desk-paw-banner.png" />
-    <meta name="theme-color" content="#d9ebe4" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./desk-paw-logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -110,10 +111,21 @@
       }
 
       .mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
         font-family: var(--font-display);
         font-weight: 700;
         font-size: 1rem;
         letter-spacing: -0.02em;
+        text-decoration: none;
+      }
+
+      .mark img {
+        width: 1.7rem;
+        height: 1.7rem;
+        border-radius: 0.4rem;
+        display: block;
       }
 
       .top-links {
@@ -410,12 +422,20 @@
       }
 
       .final .brand-end {
-        margin: 0;
+        margin: 0.85rem 0 0;
         font-family: var(--font-display);
         font-weight: 800;
         font-size: clamp(2.8rem, 8vw, 5rem);
         letter-spacing: -0.05em;
         line-height: 0.95;
+      }
+
+      .final-logo {
+        width: 5.5rem;
+        height: 5.5rem;
+        border-radius: 1.15rem;
+        display: inline-block;
+        box-shadow: var(--shadow-soft);
       }
 
       .final p {
@@ -551,7 +571,10 @@
     <div class="site">
       <header class="hero">
         <div class="topbar">
-          <div class="mark">Desk Paw</div>
+          <a class="mark" href="#download">
+            <img src="./desk-paw-logo.png" width="28" height="28" alt="" />
+            Desk Paw
+          </a>
           <nav class="top-links" aria-label="Primary">
             <a class="ghost" href="https://github.com/klockitier/desk-paw/releases/latest">Download</a>
             <a class="ghost" href="https://github.com/klockitier/desk-paw">GitHub</a>
@@ -588,7 +611,7 @@
           Pastes into Terminal, installs the right Mac build, clears Gatekeeper,
           and launches Desk Paw:
         </p>
-        <pre class="install-code"><code>curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh | bash</code></pre>
+        <pre class="install-code"><code>bash -c "$(curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh)"</code></pre>
         <p class="section-copy">
           Prefer a file?
           <a href="https://github.com/klockitier/desk-paw/releases/latest">Download the DMG</a>
@@ -648,6 +671,7 @@
       </section>
 
       <section class="final">
+        <img class="final-logo" src="./desk-paw-logo.png" width="88" height="88" alt="Desk Paw logo" />
         <h2 class="brand-end">Desk Paw</h2>
         <p>Original art. Open source. Built for the long session.</p>
         <div class="cta-row">

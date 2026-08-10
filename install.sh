@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Desk Paw — one-step macOS installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh | bash
+# Usage:
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh)"
 set -euo pipefail
 
 REPO="klockitier/desk-paw"
@@ -27,8 +28,6 @@ trap 'rm -rf "$tmp"' EXIT
 
 echo "→ Finding latest Desk Paw release…"
 api="https://api.github.com/repos/${REPO}/releases/latest"
-# Close stdin so a `curl | bash` pipe can't feed the rest of this script into child commands.
-exec </dev/null
 
 archive_url="$(
   python3 - "$api" "$asset_suffix" <<'PY'

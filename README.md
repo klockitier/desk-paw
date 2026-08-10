@@ -14,7 +14,7 @@ Install in one step (downloads the right Mac build, puts it in Applications, and
 clears the Gatekeeper quarantine so it opens):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh | bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/klockitier/desk-paw/main/install.sh)"
 ```
 
 Or grab a `.dmg` from **[Releases](https://github.com/klockitier/desk-paw/releases/latest)** and drag it into Applications yourself. Unsigned builds need a one-time quarantine clear — the script above does that for you.
