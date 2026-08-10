@@ -1,5 +1,9 @@
 # Desk Paw
 
+[![Desk Paw](./docs/desk-paw-banner.png)](https://klockitier.github.io/desk-paw/)
+
+**[Homepage →](https://klockitier.github.io/desk-paw/)**
+
 A tiny open-source macOS desktop cat.
 
 It floats above your desktop, reacts to the mouse and keyboard, and can be steered by local agent hooks (`pawctl`). Inspired by the *idea* of desktop companions — **all artwork, animations, branding, and code here are original**.

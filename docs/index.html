@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Desk Paw — a desktop cat for long coding sessions</title>
+    <meta
+      name="description"
+      content="Desk Paw is an open-source desktop companion cat. It floats above your screen, reacts when you type, and listens to local agent hooks."
+    />
+    <meta property="og:title" content="Desk Paw" />
+    <meta
+      property="og:description"
+      content="A tiny open-source desktop cat for coding sessions and agent loops."
+    />
+    <meta property="og:image" content="./desk-paw-banner.png" />
+    <meta name="theme-color" content="#d9ebe4" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Sora:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #1d1915;
+        --ink-soft: #4a433c;
+        --paper: #f4efe6;
+        --mist: #d9ebe4;
+        --sky: #b9d6cf;
+        --teal: #0f6e6a;
+        --teal-deep: #0a4f4c;
+        --apricot: #e28a45;
+        --wood: #c8a078;
+        --wood-deep: #8d6540;
+        --line: color-mix(in srgb, var(--ink) 12%, transparent);
+        --shadow-soft: 0 28px 60px color-mix(in srgb, var(--ink) 14%, transparent);
+        --font-display: "Bricolage Grotesque", Georgia, serif;
+        --font-body: "Sora", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: var(--font-body);
+        background:
+          radial-gradient(1200px 700px at 78% 18%, #fff8ee 0%, transparent 55%),
+          radial-gradient(900px 500px at 12% 8%, #e7f5f1 0%, transparent 50%),
+          linear-gradient(165deg, var(--mist) 0%, #e7f0ea 42%, var(--paper) 100%);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .site {
+        width: min(1120px, calc(100% - 2rem));
+        margin: 0 auto;
+      }
+
+      /* ——— Hero: one composition ——— */
+      .hero {
+        position: relative;
+        min-height: 100svh;
+        display: grid;
+        align-items: end;
+        padding: 1.25rem 0 0;
+        isolation: isolate;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0 -20vw auto;
+        height: 72vh;
+        background:
+          linear-gradient(180deg, transparent 55%, color-mix(in srgb, var(--paper) 55%, transparent)),
+          repeating-linear-gradient(
+            90deg,
+            color-mix(in srgb, #fff 28%, transparent) 0 1px,
+            transparent 1px 72px
+          );
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: -1;
+        animation: light-drift 14s ease-in-out infinite alternate;
+      }
+
+      .topbar {
+        position: absolute;
+        top: 1.25rem;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 3;
+        opacity: 0;
+        animation: rise 0.8s ease 0.1s forwards;
+      }
+
+      .mark {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: -0.02em;
+      }
+
+      .topbar a.ghost {
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--ink-soft);
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s ease, color 0.2s ease;
+      }
+
+      .topbar a.ghost:hover {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+      }
+
+      .hero-stage {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 1rem;
+        align-items: end;
+        min-height: calc(100svh - 1.25rem);
+      }
+
+      .hero-copy {
+        padding: 0 0 7.5rem;
+        max-width: 34rem;
+        opacity: 0;
+        animation: rise 0.9s ease 0.2s forwards;
+      }
+
+      .brand {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(4.2rem, 11vw, 7.5rem);
+        line-height: 0.88;
+        letter-spacing: -0.055em;
+      }
+
+      .lede {
+        margin: 1.35rem 0 0;
+        font-size: clamp(1.05rem, 2.1vw, 1.25rem);
+        line-height: 1.45;
+        color: var(--ink-soft);
+        max-width: 28rem;
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem 1.1rem;
+        align-items: center;
+        margin-top: 1.85rem;
+      }
+
+      .btn {
+        appearance: none;
+        border: 0;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.95rem 1.35rem;
+        border-radius: 0.55rem;
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 0.95rem;
+        background: var(--teal);
+        color: #f7fffd;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .btn:hover {
+        background: var(--teal-deep);
+        transform: translateY(-1px);
+      }
+
+      .btn-quiet {
+        background: transparent;
+        color: var(--ink);
+        padding-left: 0.2rem;
+        padding-right: 0.2rem;
+        border-radius: 0;
+        border-bottom: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+      }
+
+      .btn-quiet:hover {
+        background: transparent;
+        border-bottom-color: var(--ink);
+        transform: none;
+      }
+
+      .hero-visual {
+        position: relative;
+        height: min(78vh, 720px);
+        opacity: 0;
+        animation: rise 1s ease 0.35s forwards;
+      }
+
+      .desk-plane {
+        position: absolute;
+        left: -18%;
+        right: -30%;
+        bottom: 0;
+        height: 34%;
+        background:
+          linear-gradient(180deg, color-mix(in srgb, var(--wood) 75%, #fff) 0%, var(--wood) 38%, var(--wood-deep) 100%);
+        border-radius: 40% 40% 0 0 / 18% 18% 0 0;
+        box-shadow: var(--shadow-soft);
+        transform-origin: 50% 100%;
+        animation: desk-settle 1.1s ease 0.45s both;
+      }
+
+      .desk-plane::before {
+        content: "";
+        position: absolute;
+        inset: 12% 8% auto;
+        height: 2px;
+        background: color-mix(in srgb, #fff 35%, transparent);
+        border-radius: 999px;
+      }
+
+      .cat-stage {
+        position: absolute;
+        left: 50%;
+        bottom: 18%;
+        width: min(420px, 70vw);
+        aspect-ratio: 1;
+        transform: translateX(-46%);
+        display: grid;
+        place-items: end center;
+        filter: drop-shadow(0 18px 24px color-mix(in srgb, var(--ink) 22%, transparent));
+        animation: cat-bob 3.6s ease-in-out infinite;
+      }
+
+      .cat-stage img {
+        width: 100%;
+        height: auto;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+        user-select: none;
+        pointer-events: none;
+      }
+
+      .window-glow {
+        position: absolute;
+        right: 4%;
+        top: 8%;
+        width: 42%;
+        height: 46%;
+        background:
+          radial-gradient(circle at 50% 40%, color-mix(in srgb, #fff 70%, transparent), transparent 70%);
+        opacity: 0.65;
+        pointer-events: none;
+        animation: glow-breathe 5s ease-in-out infinite;
+      }
+
+      /* ——— Sections ——— */
+      section {
+        padding: 5.5rem 0 1rem;
+      }
+
+      .section-kicker {
+        margin: 0 0 0.65rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--teal-deep);
+      }
+
+      .section-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 760;
+        font-size: clamp(2rem, 4.5vw, 3.1rem);
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        max-width: 14ch;
+      }
+
+      .section-copy {
+        margin: 1rem 0 0;
+        color: var(--ink-soft);
+        font-size: 1.05rem;
+        line-height: 1.55;
+        max-width: 36rem;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+      }
+
+      .demo-stage {
+        position: relative;
+        min-height: 320px;
+        border-radius: 1.5rem;
+        background:
+          linear-gradient(160deg, color-mix(in srgb, var(--sky) 55%, #fff), color-mix(in srgb, var(--paper) 80%, #fff));
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px var(--line);
+      }
+
+      .demo-stage .floor {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 28%;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--wood) 70%, #fff), var(--wood));
+      }
+
+      .sprite-wrap {
+        position: absolute;
+        left: 50%;
+        bottom: 16%;
+        width: min(280px, 70%);
+        transform: translateX(-50%);
+        display: grid;
+        place-items: end center;
+      }
+
+      .sprite-wrap img {
+        width: 100%;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+
+      .privacy {
+        margin: 4rem 0 0;
+        padding: 2.25rem 0 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .privacy-list {
+        margin: 1.25rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.75rem;
+        max-width: 40rem;
+      }
+
+      .privacy-list li {
+        position: relative;
+        padding-left: 1.15rem;
+        color: var(--ink-soft);
+        line-height: 1.45;
+      }
+
+      .privacy-list li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.55em;
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 50%;
+        background: var(--apricot);
+      }
+
+      .final {
+        padding: 5rem 0 6rem;
+        text-align: center;
+      }
+
+      .final .brand-end {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(2.8rem, 8vw, 5rem);
+        letter-spacing: -0.05em;
+        line-height: 0.95;
+      }
+
+      .final p {
+        margin: 1rem auto 0;
+        max-width: 28rem;
+        color: var(--ink-soft);
+      }
+
+      .final .cta-row {
+        justify-content: center;
+      }
+
+      footer {
+        padding: 0 0 2.5rem;
+        color: var(--ink-soft);
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      footer a {
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+
+      footer a:hover {
+        border-bottom-color: currentColor;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes cat-bob {
+        0%,
+        100% {
+          transform: translateX(-46%) translateY(0);
+        }
+        50% {
+          transform: translateX(-46%) translateY(-10px);
+        }
+      }
+
+      @keyframes desk-settle {
+        from {
+          transform: scaleY(0.92);
+          opacity: 0;
+        }
+        to {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes light-drift {
+        from {
+          transform: translateX(-1.5%);
+        }
+        to {
+          transform: translateX(1.5%);
+        }
+      }
+
+      @keyframes glow-breathe {
+        0%,
+        100% {
+          opacity: 0.45;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.75;
+          transform: scale(1.04);
+        }
+      }
+
+      @media (max-width: 860px) {
+        .hero-stage,
+        .split {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-stage {
+          min-height: auto;
+          padding-top: 5rem;
+        }
+
+        .hero-copy {
+          padding: 0;
+          order: 1;
+        }
+
+        .hero-visual {
+          order: 0;
+          height: 54vh;
+          min-height: 360px;
+        }
+
+        .brand {
+          font-size: clamp(3.6rem, 16vw, 5.4rem);
+        }
+
+        .section-title {
+          max-width: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+
+        .hero-copy,
+        .hero-visual,
+        .topbar {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site">
+      <header class="hero">
+        <div class="topbar">
+          <div class="mark">Desk Paw</div>
+          <a class="ghost" href="https://github.com/klockitier/desk-paw">GitHub</a>
+        </div>
+
+        <div class="hero-stage">
+          <div class="hero-copy">
+            <h1 class="brand">Desk Paw</h1>
+            <p class="lede">
+              A tiny desktop cat that watches you code, kneads when you type, and
+              cheers when your agents finish.
+            </p>
+            <div class="cta-row">
+              <a class="btn" href="https://github.com/klockitier/desk-paw#install">Get the cat</a>
+              <a class="btn btn-quiet" href="#alive">See how it feels</a>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-hidden="true">
+            <div class="window-glow"></div>
+            <div class="desk-plane"></div>
+            <div class="cat-stage">
+              <img id="hero-cat" alt="" width="420" height="420" />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section id="alive">
+        <div class="split">
+          <div>
+            <p class="section-kicker">Presence</p>
+            <h2 class="section-title">It notices the session you’re in</h2>
+            <p class="section-copy">
+              Idle breath. Cursor watch. Typing paws. Happy hops when something
+              lands. Desk Paw turns long agent loops into a little living corner
+              of your desktop — no accounts, no cloud, no telemetry.
+            </p>
+          </div>
+          <div class="demo-stage" aria-hidden="true">
+            <div class="floor"></div>
+            <div class="sprite-wrap">
+              <img id="demo-cat" alt="" width="280" height="280" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="agents">
+        <div class="split">
+          <div class="demo-stage" aria-hidden="true">
+            <div class="floor"></div>
+            <div class="sprite-wrap">
+              <img id="type-cat" alt="" width="280" height="280" />
+            </div>
+          </div>
+          <div>
+            <p class="section-kicker">Agent hooks</p>
+            <h2 class="section-title">Steer it from your tools</h2>
+            <p class="section-copy">
+              Point Claude Code, Codex, or Cursor hooks at
+              <code>pawctl</code>. One local loopback poke and the cat shifts
+              into working, waiting, done, or error — right on your desktop.
+            </p>
+          </div>
+        </div>
+
+        <div class="privacy">
+          <p class="section-kicker">Privacy</p>
+          <h2 class="section-title">Only activity, never content</h2>
+          <ul class="privacy-list">
+            <li>No analytics, telemetry, or external network calls</li>
+            <li>Keyboard events are noticed, never read or stored</li>
+            <li><code>pawctl</code> listens on localhost only</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="final">
+        <h2 class="brand-end">Desk Paw</h2>
+        <p>Original art. Open source. Built for the long session.</p>
+        <div class="cta-row">
+          <a class="btn" href="https://github.com/klockitier/desk-paw">Open the repo</a>
+        </div>
+      </section>
+
+      <footer>
+        <span>MIT · original artwork &amp; code</span>
+        <a href="https://github.com/klockitier/desk-paw">github.com/klockitier/desk-paw</a>
+      </footer>
+    </div>
+
+    <script>
+      const frames = {
+        idle: [
+          "./media/idle/idle_front_0.png",
+          "./media/idle/idle_front_1.png",
+          "./media/idle/idle_front_2.png",
+          "./media/idle/idle_front_3.png",
+          "./media/idle/idle_front_4.png",
+          "./media/idle/idle_front_5.png",
+        ],
+        walk: [
+          "./media/walk/walk_front_0.png",
+          "./media/walk/walk_front_1.png",
+          "./media/walk/walk_front_2.png",
+          "./media/walk/walk_front_3.png",
+          "./media/walk/walk_front_4.png",
+        ],
+        happy: [
+          "./media/happy/happy_front_0.png",
+          "./media/happy/happy_front_1.png",
+        ],
+        typing: [
+          "./media/typing/typing_calm_left_0.png",
+          "./media/typing/typing_calm_left_1.png",
+          "./media/typing/typing_calm_left_2.png",
+          "./media/typing/typing_calm_left_3.png",
+          "./media/typing/typing_calm_left_4.png",
+          "./media/typing/typing_calm_left_5.png",
+          "./media/typing/typing_calm_left_6.png",
+        ],
+      };
+
+      function preload(urls) {
+        urls.forEach((src) => {
+          const img = new Image();
+          img.src = src;
+        });
+      }
+
+      Object.values(frames).forEach(preload);
+
+      function animate(el, sequence, fps) {
+        if (!el || !sequence.length) return;
+        let i = 0;
+        el.src = sequence[0];
+        const ms = Math.max(40, 1000 / fps);
+        setInterval(() => {
+          i = (i + 1) % sequence.length;
+          el.src = sequence[i];
+        }, ms);
+      }
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!reduce) {
+        animate(document.getElementById("hero-cat"), frames.idle, 6);
+        animate(document.getElementById("demo-cat"), frames.walk.concat(frames.happy, frames.happy), 7);
+        animate(document.getElementById("type-cat"), frames.typing, 9);
+      } else {
+        const hero = document.getElementById("hero-cat");
+        const demo = document.getElementById("demo-cat");
+        const type = document.getElementById("type-cat");
+        if (hero) hero.src = frames.idle[0];
+        if (demo) demo.src = frames.walk[0];
+        if (type) type.src = frames.typing[0];
+      }
+    </script>
+  </body>
+</html>
