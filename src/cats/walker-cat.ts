@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import {
-  currentMonitor,
+  availableMonitors,
   getCurrentWindow,
   LogicalPosition,
 } from "@tauri-apps/api/window";
@@ -379,8 +379,7 @@ export class WalkerCat implements CatController {
       const x1 = cx + ux * hopDist + side * 36;
       const y1 = cy + uy * hopDist;
       this.hop = { x0: cx, y0: cy, x1, y1, started: now, weave };
-      this.face(weave > 0 || ux > 0.2 ? "right" : ux < -0.2 ? "left" : weave > 0 ? "right" : "left");
-      if (Math.abs(ux) > 0.35) this.face(ux > 0 ? "right" : "left");
+      this.face(ux > 0.2 ? "right" : ux < -0.2 ? "left" : weave > 0 ? "right" : "left");
       this.frame = 0;
     }
 
@@ -396,17 +395,34 @@ export class WalkerCat implements CatController {
       loft * arc -
       winH / 2;
 
-    const monitor = await currentMonitor();
-    if (monitor) {
-      const mx = monitor.position.x / scale;
-      const my = monitor.position.y / scale;
-      const mw = monitor.size.width / scale;
-      const mh = monitor.size.height / scale;
-      nx = Math.min(Math.max(nx, mx), mx + mw - winW);
-      ny = Math.min(Math.max(ny, my), my + mh - winH);
-    }
+    ({ nx, ny } = await this.clampToDisplays(nx, ny, winW, winH, scale));
 
     await this.appWindow.setPosition(new LogicalPosition(nx, ny));
+  }
+
+  /**
+   * Clamp against the union of every connected display, not just the one the
+   * window currently sits on — clamping to a single monitor pinned the cat to
+   * it forever, since the target position got snapped back before it could
+   * cross the shared edge into the next screen.
+   */
+  private async clampToDisplays(
+    nx: number,
+    ny: number,
+    winW: number,
+    winH: number,
+    scale: number,
+  ): Promise<{ nx: number; ny: number }> {
+    const monitors = await availableMonitors();
+    if (!monitors.length) return { nx, ny };
+    const left = Math.min(...monitors.map((m) => m.position.x)) / scale;
+    const top = Math.min(...monitors.map((m) => m.position.y)) / scale;
+    const right = Math.max(...monitors.map((m) => m.position.x + m.size.width)) / scale;
+    const bottom = Math.max(...monitors.map((m) => m.position.y + m.size.height)) / scale;
+    return {
+      nx: Math.min(Math.max(nx, left), right - winW),
+      ny: Math.min(Math.max(ny, top), bottom - winH),
+    };
   }
 
   private async stepTowardTarget(dt: number, now: number): Promise<void> {
@@ -434,15 +450,7 @@ export class WalkerCat implements CatController {
     let nx = cx + (dx / dist) * step - winW / 2;
     let ny = cy + (dy / dist) * step - winH / 2;
 
-    const monitor = await currentMonitor();
-    if (monitor) {
-      const mx = monitor.position.x / scale;
-      const my = monitor.position.y / scale;
-      const mw = monitor.size.width / scale;
-      const mh = monitor.size.height / scale;
-      nx = Math.min(Math.max(nx, mx), mx + mw - winW);
-      ny = Math.min(Math.max(ny, my), my + mh - winH);
-    }
+    ({ nx, ny } = await this.clampToDisplays(nx, ny, winW, winH, scale));
 
     await this.appWindow.setPosition(new LogicalPosition(nx, ny));
   }
