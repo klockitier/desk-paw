@@ -10,7 +10,55 @@ permissions:
   contents: write
 
 jobs:
+  # Create the GitHub Release once up front so matrix builds only upload artifacts
+  # (avoids a race where both macOS jobs try to create the same release).
+  prepare:
+    runs-on: ubuntu-latest
+    name: Prepare release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure GitHub Release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: --use-system-ca
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            TAG="v$(node -p "require('./package.json').version")"
+          fi
+          VERSION="${TAG#v}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists"
+            exit 0
+          fi
+          cat > /tmp/release-notes.md <<'EOF'
+          Download a macOS build below and open the `.dmg`.
+
+          **Gatekeeper (“Apple could not verify…”):** this build is unsigned. After installing to Applications:
+
+          ```bash
+          xattr -cr "/Applications/Desk Paw.app"
+          open "/Applications/Desk Paw.app"
+          ```
+
+          Or right-click → **Open** → **Open**. On newer macOS: **System Settings → Privacy & Security → Open Anyway**.
+
+          Apple Silicon (`aarch64`) and Intel (`x64`) DMGs are both attached.
+
+          Enable **Accessibility** and **Input Monitoring** for Desk Paw so typing in other apps is detected.
+          EOF
+          # Strip the leading indent from the heredoc body for cleaner notes.
+          sed -i 's/^          //' /tmp/release-notes.md
+          gh release create "$TAG" \
+            --title "Desk Paw v${VERSION}" \
+            --notes-file /tmp/release-notes.md
+          echo "Created release $TAG"
+
   publish:
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -31,7 +79,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install Rust stable
@@ -51,6 +99,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Node 22+ on some runners needs the system trust store for GitHub API TLS.
+          NODE_OPTIONS: --use-system-ca
         with:
           tagName: v__VERSION__
           releaseName: Desk Paw v__VERSION__
@@ -67,6 +117,8 @@ jobs:
             Or right-click → **Open** → **Open**. On newer macOS: **System Settings → Privacy & Security → Open Anyway**.
 
             Apple Silicon (`aarch64`) and Intel (`x64`) DMGs are both attached.
+
+            Enable **Accessibility** and **Input Monitoring** for Desk Paw so typing in other apps is detected.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
