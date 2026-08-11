@@ -570,6 +570,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "desk-paw"
+version = "0.1.2"
+dependencies = [
+ "objc",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1833,17 +1844,6 @@ dependencies = [
  "serde",
  "thiserror 2.0.20",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "desk-paw"
-version = "0.1.0"
-dependencies = [
- "objc",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
 ]
 
 [[package]]
