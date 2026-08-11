@@ -15,7 +15,7 @@ export const ANIMATIONS = {
   idle_right: ["idle_right_0.png", "idle_right_1.png", "idle_right_2.png", "idle_right_3.png"],
   jump_down_back: ["jump_down_back_0.png", "jump_down_back_1.png", "jump_down_back_2.png", "jump_down_back_3.png", "jump_down_back_4.png", "jump_down_back_5.png"],
   jump_down_front: ["jump_down_front_0.png", "jump_down_front_1.png", "jump_down_front_2.png", "jump_down_front_3.png", "jump_down_front_4.png", "jump_down_front_5.png", "jump_down_front_6.png", "jump_down_front_7.png"],
-  jump_down_left: ["jump_down_left_0.png", "jump_down_left_1.png", "jump_down_left_2.png", "jump_down_left_3.png", "jump_down_left_4.png", "jump_down_left_5.png", "jump_down_left_6.png"],
+  jump_down_left: ["jump_down_left_0.png", "jump_down_left_1.png", "jump_down_left_2.png", "jump_down_left_3.png", "jump_down_left_4.png", "jump_down_left_5.png", "jump_down_left_6.png", "jump_down_left_7.png"],
   jump_down_right: ["jump_down_right_0.png", "jump_down_right_1.png", "jump_down_right_2.png", "jump_down_right_3.png", "jump_down_right_4.png", "jump_down_right_5.png", "jump_down_right_6.png", "jump_down_right_7.png"],
   jump_up_back: ["jump_up_back_0.png", "jump_up_back_1.png", "jump_up_back_2.png", "jump_up_back_3.png", "jump_up_back_4.png", "jump_up_back_5.png", "jump_up_back_6.png", "jump_up_back_7.png"],
   jump_up_front: ["jump_up_front_0.png", "jump_up_front_1.png", "jump_up_front_2.png", "jump_up_front_3.png", "jump_up_front_4.png", "jump_up_front_5.png", "jump_up_front_6.png", "jump_up_front_7.png"],

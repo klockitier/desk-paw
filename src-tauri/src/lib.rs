@@ -414,7 +414,50 @@ fn start_mouse_poll(app: AppHandle) {
     });
 }
 
+/// Ask macOS for the TCC grants that gate global key taps.
+///
+/// - ListenOnly taps → Input Monitoring (`CGRequestListenEventAccess`)
+/// - Default (filter) taps → Accessibility / PostEvent (`CGRequestPostEventAccess` + AX prompt)
+#[cfg(target_os = "macos")]
+fn request_global_key_permissions(prompt_ax: bool) {
+    #[link(name = "CoreGraphics", kind = "framework")]
+    extern "C" {
+        fn CGRequestListenEventAccess() -> bool;
+        fn CGRequestPostEventAccess() -> bool;
+    }
+    unsafe {
+        let _ = CGRequestListenEventAccess();
+        let _ = CGRequestPostEventAccess();
+    }
+    if prompt_ax {
+        let _ = ax_trusted_prompting();
+    } else {
+        let _ = ax_trusted();
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn open_typing_privacy_settings() {
+    use std::process::Command;
+    // Best-effort deep links; older macOS ignores unknown URLs.
+    let _ = Command::new("open")
+        .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+        .spawn();
+    let _ = Command::new("open")
+        .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")
+        .spawn();
+}
+
+#[tauri::command]
+fn open_typing_permissions() {
+    #[cfg(target_os = "macos")]
+    open_typing_privacy_settings();
+}
+
 /// Key-activity-only tap. Does not read or convert key characters (avoids rdev/HIToolbox crash).
+///
+/// Listens for keys in *other* apps (not just when Desk Paw is focused). Tries Input
+/// Monitoring (listen-only) first, then Accessibility (default tap).
 #[cfg(target_os = "macos")]
 fn start_key_activity_tap(app: AppHandle) {
     use std::ffi::c_void;
@@ -459,10 +502,10 @@ fn start_key_activity_tap(app: AppHandle) {
     }
 
     const KCG_HID_EVENT_TAP: u32 = 0;
+    const KCG_SESSION_EVENT_TAP: u32 = 1;
     const KCG_HEAD_INSERT: u32 = 0;
-    /// Active tap. Listen-only taps are gated by Input Monitoring on macOS, while
-    /// this one works with the Accessibility grant the app already asks for.
     const KCG_TAP_DEFAULT: u32 = 0;
+    const KCG_TAP_LISTEN_ONLY: u32 = 1;
     const KCG_EVENT_KEY_DOWN: u32 = 10;
     const KCG_EVENT_KEY_UP: u32 = 11;
     const KCG_TAP_DISABLED_BY_TIMEOUT: u32 = 0xFFFF_FFFE;
@@ -484,6 +527,13 @@ fn start_key_activity_tap(app: AppHandle) {
             KCG_EVENT_KEY_DOWN | KCG_EVENT_KEY_UP => {
                 if !KEY_SEEN.swap(true, Ordering::SeqCst) {
                     println!("[desk-paw] first key event seen — typing detection is live");
+                    let _ = ctx.app.emit(
+                        "permission-status",
+                        PermissionStatus {
+                            keyboard: true,
+                            message: "Typing detection is on.".into(),
+                        },
+                    );
                 }
                 let _ = ctx.app.emit("key-activity", ());
             }
@@ -502,63 +552,92 @@ fn start_key_activity_tap(app: AppHandle) {
     }
 
     thread::spawn(move || {
-        // Permission is usually granted *after* first launch; keep waiting for it
-        // rather than needing a restart.
+        let permission_msg = "To type in other apps: System Settings → Privacy & Security → turn ON Desk Paw under Accessibility and Input Monitoring, then quit & reopen Desk Paw.";
         let mut warned = false;
-        // First check prompts, so macOS registers the right process itself.
-        while !(if warned { ax_trusted() } else { ax_trusted_prompting() }) {
+        let mut opened_settings = false;
+
+        // Keep requesting until a tap can be created — user often grants after first launch.
+        let (tap, user) = loop {
+            request_global_key_permissions(!warned);
+
+            let ctx = Box::new(TapCtx {
+                app: app.clone(),
+                tap: AtomicPtr::new(ptr::null_mut()),
+            });
+            let user = Box::into_raw(ctx) as *mut c_void;
+            let mask: u64 = (1 << KCG_EVENT_KEY_DOWN) | (1 << KCG_EVENT_KEY_UP);
+
+            // Prefer session+listenOnly (Input Monitoring). Fall back to default taps
+            // (Accessibility / PostEvent), including the old HID placement.
+            let attempts = [
+                (KCG_SESSION_EVENT_TAP, KCG_TAP_LISTEN_ONLY, "session/listenOnly"),
+                (KCG_SESSION_EVENT_TAP, KCG_TAP_DEFAULT, "session/default"),
+                (KCG_HID_EVENT_TAP, KCG_TAP_DEFAULT, "hid/default"),
+                (KCG_HID_EVENT_TAP, KCG_TAP_LISTEN_ONLY, "hid/listenOnly"),
+            ];
+
+            let mut created: CFMachPortRef = ptr::null_mut();
+            let mut label = "";
+            unsafe {
+                for (location, options, name) in attempts {
+                    let tap = CGEventTapCreate(
+                        location,
+                        KCG_HEAD_INSERT,
+                        options,
+                        mask,
+                        Some(callback),
+                        user,
+                    );
+                    if !tap.is_null() {
+                        created = tap;
+                        label = name;
+                        break;
+                    }
+                }
+            }
+
+            if !created.is_null() {
+                println!("[desk-paw] key tap created ({label}); waiting for key events");
+                break (created, user);
+            }
+
+            unsafe {
+                let _ = Box::from_raw(user as *mut TapCtx);
+            }
+
             if !warned {
                 warned = true;
                 println!(
-                    "[desk-paw] AXIsProcessTrusted() = false — waiting for Accessibility. \
-                     Grant it to whichever app owns this process (in `tauri dev` that is \
-                     usually your terminal/editor, not Desk Paw)."
+                    "[desk-paw] could not create key tap — need Accessibility and/or Input Monitoring"
                 );
                 let _ = app.emit(
                     "permission-status",
                     PermissionStatus {
                         keyboard: false,
-                        message: "Enable Accessibility for Desk Paw to detect typing in other apps (System Settings → Privacy & Security → Accessibility). Local mouse/click still works.".into(),
+                        message: permission_msg.into(),
                     },
                 );
+            }
+            if !opened_settings {
+                opened_settings = true;
+                open_typing_privacy_settings();
             }
             thread::sleep(Duration::from_secs(3));
-        }
-
-        let ctx = Box::new(TapCtx {
-            app: app.clone(),
-            tap: AtomicPtr::new(ptr::null_mut()),
-        });
-        let user = Box::into_raw(ctx) as *mut c_void;
-        let mask: u64 = (1 << KCG_EVENT_KEY_DOWN) | (1 << KCG_EVENT_KEY_UP);
+        };
 
         unsafe {
-            let tap = CGEventTapCreate(
-                KCG_HID_EVENT_TAP,
-                KCG_HEAD_INSERT,
-                KCG_TAP_DEFAULT,
-                mask,
-                Some(callback),
-                user,
-            );
-            if tap.is_null() {
-                let _ = app.emit(
-                    "permission-status",
-                    PermissionStatus {
-                        keyboard: false,
-                        message: "Could not create keyboard event tap. Grant Accessibility (and Input Monitoring if listed), then restart.".into(),
-                    },
-                );
-                let _ = Box::from_raw(user as *mut TapCtx);
-                return;
-            }
             (*(user as *mut TapCtx)).tap.store(tap, Ordering::SeqCst);
-
-            println!("[desk-paw] key tap created; waiting for key events");
             let source = CFMachPortCreateRunLoopSource(ptr::null(), tap, 0);
             CFRunLoopAddSource(CFRunLoopGetCurrent(), source, kCFRunLoopCommonModes);
             CGEventTapEnable(tap, true);
             println!("key-activity tap active");
+            let _ = app.emit(
+                "permission-status",
+                PermissionStatus {
+                    keyboard: true,
+                    message: "Waiting for first key in another app…".into(),
+                },
+            );
             CFRunLoopRun();
         }
     });
@@ -580,7 +659,8 @@ pub fn run() {
             set_interactive_locked,
             set_walker_mode,
             set_cat_size,
-            reset_position
+            reset_position,
+            open_typing_permissions
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]

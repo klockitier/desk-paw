@@ -208,7 +208,8 @@ async function boot() {
     if (!ev.payload.keyboard) {
       statusEl.textContent = ev.payload.message;
       statusEl.classList.remove("hidden");
-      setTimeout(() => statusEl.classList.add("hidden"), 8000);
+    } else {
+      statusEl.classList.add("hidden");
     }
   });
 

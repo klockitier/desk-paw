@@ -82,5 +82,7 @@ open "$DEST"
 
 echo
 echo "✓ Installed: $DEST"
-echo "  Optional: System Settings → Privacy & Security → Accessibility"
-echo "  (so the cat can notice typing in other apps)."
+echo "  For typing in other apps, enable Desk Paw under:"
+echo "  System Settings → Privacy & Security → Accessibility"
+echo "  System Settings → Privacy & Security → Input Monitoring"
+echo "  Then quit and reopen Desk Paw."

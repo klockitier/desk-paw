@@ -1,6 +1,6 @@
 [package]
 name = "desk-paw"
-version = "0.1.3"
+version = "0.1.4"
 description = "Open-source desktop cat companion"
 authors = ["klockitier"]
 edition = "2021"
