@@ -36,7 +36,6 @@ const STATE_ANIMATION: Record<PetState, string> = {
 /** Milliseconds per frame, tuned so each cycle reads smoothly at its own pace. */
 const FRAME_MS: Record<string, number> = {
   idle: 220,
-  walk: 73, // ~1.5× prior pace, matched to WALK_SPEED
   run: 53,
   sit: 380,
   sleep: 900,
@@ -51,13 +50,11 @@ const FRAME_MS: Record<string, number> = {
 };
 
 const STOP_DISTANCE = 90;
-const RUN_DISTANCE = 340;
 /** Prefer hop when dropping at least this far (and mostly vertical). */
 const JUMP_DOWN_DY = 120;
 /** Leap up once the cursor is about one cat-height above. */
 const JUMP_UP_DY = FRAME_HEIGHT * 0.9;
-const WALK_SPEED = 69; // was 46 — ~1.5×
-const RUN_SPEED = 198; // was 132 — ~1.5×
+const RUN_SPEED = 198; // was 132 — ~1.5×; walk gait unused (always runs)
 const MOVE_INTERVAL_MS = 32;
 const FACE_FRONT_AFTER_MS = 1200;
 /** Walking without getting anywhere this long → give up and sit down. */
@@ -97,7 +94,6 @@ export class WalkerCat implements CatController {
   private lastAnimBase = "";
 
   private moving = false;
-  private running = false;
   private jumping = false;
   private jumpDown = false;
   private target = { x: 0, y: 0 };
@@ -189,7 +185,6 @@ export class WalkerCat implements CatController {
 
     const canMove = !RESTING_STATES.includes(this.state);
     this.moving = canMove && dist > STOP_DISTANCE;
-    this.running = dist > RUN_DISTANCE;
 
     // Climb: jump once the cursor is ~one cat-height above (even if also sideways).
     // Drop: still require a mostly-vertical fall so diagonal walks don't always hop.
@@ -289,7 +284,7 @@ export class WalkerCat implements CatController {
       return this.jumpDown ? "jump_down" : "jump_up";
     }
     if (this.moving && !RESTING_STATES.includes(this.state)) {
-      return this.running ? "run" : "walk";
+      return "run";
     }
     return STATE_ANIMATION[this.state] ?? "idle";
   }
@@ -452,7 +447,7 @@ export class WalkerCat implements CatController {
       return;
     }
 
-    const speed = this.running ? RUN_SPEED : WALK_SPEED;
+    const speed = RUN_SPEED;
     const step = Math.min(speed * dt, dist - STOP_DISTANCE);
     let nx = cx + (dx / dist) * step - winW / 2;
     let ny = cy + (dy / dist) * step - winH / 2;
