@@ -36,8 +36,8 @@ const STATE_ANIMATION: Record<PetState, string> = {
 /** Milliseconds per frame, tuned so each cycle reads smoothly at its own pace. */
 const FRAME_MS: Record<string, number> = {
   idle: 220,
-  walk: 110,
-  run: 80,
+  walk: 73, // ~1.5× prior pace, matched to WALK_SPEED
+  run: 53,
   sit: 380,
   sleep: 900,
   typing_calm: 111, // 9 fps — unhurried work
@@ -52,10 +52,12 @@ const FRAME_MS: Record<string, number> = {
 
 const STOP_DISTANCE = 90;
 const RUN_DISTANCE = 340;
-/** Prefer hop when the cursor is this far above/below the cat. */
-const JUMP_DY = 120;
-const WALK_SPEED = 46;
-const RUN_SPEED = 132;
+/** Prefer hop when dropping at least this far (and mostly vertical). */
+const JUMP_DOWN_DY = 120;
+/** Leap up once the cursor is about one cat-height above. */
+const JUMP_UP_DY = FRAME_HEIGHT * 0.9;
+const WALK_SPEED = 69; // was 46 — ~1.5×
+const RUN_SPEED = 198; // was 132 — ~1.5×
 const MOVE_INTERVAL_MS = 32;
 const FACE_FRONT_AFTER_MS = 1200;
 /** Walking without getting anywhere this long → give up and sit down. */
@@ -189,9 +191,14 @@ export class WalkerCat implements CatController {
     this.moving = canMove && dist > STOP_DISTANCE;
     this.running = dist > RUN_DISTANCE;
 
-    // Vertical climb/drop → hop like a real cat leaping onto something
-    const vertical = Math.abs(dy) >= JUMP_DY && Math.abs(dy) >= Math.abs(dx) * 0.85;
-    this.jumping = canMove && this.moving && vertical;
+    // Climb: jump once the cursor is ~one cat-height above (even if also sideways).
+    // Drop: still require a mostly-vertical fall so diagonal walks don't always hop.
+    const absDy = Math.abs(dy);
+    const absDx = Math.abs(dx);
+    const jumpUp = dy < 0 && absDy >= JUMP_UP_DY;
+    const jumpDown =
+      dy > 0 && absDy >= JUMP_DOWN_DY && absDy >= absDx * 0.85;
+    this.jumping = canMove && this.moving && (jumpUp || jumpDown);
     this.jumpDown = dy > 0;
 
     if (this.moving) {
