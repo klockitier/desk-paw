@@ -31,6 +31,7 @@ target
 .env
 .env.*
 .venv
+.venv-sprites
 .tmp-*
 *.tmp
 **/__pycache__/

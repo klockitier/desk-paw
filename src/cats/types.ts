@@ -1,6 +1,6 @@
 import type { PetState } from "../state";
 
-export type CatKind = "classic" | "walker";
+export type CatKind = "classic" | "walker" | "grey";
 
 export interface CatController {
   kind: CatKind;
