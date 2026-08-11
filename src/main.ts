@@ -2,7 +2,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow, LogicalPosition, currentMonitor } from "@tauri-apps/api/window";
 import { ClassicCat } from "./cats/classic-cat";
-import { createGreyCat } from "./cats/grey-cat";
 import type { CatController, CatKind } from "./cats/types";
 import { WalkerCat } from "./cats/walker-cat";
 import { PetStateMachine, type PetState } from "./state";
@@ -21,8 +20,6 @@ const statusEl = document.getElementById("status")!;
 
 const classic = new ClassicCat();
 const walker = new WalkerCat();
-const grey = createGreyCat();
-const cats: CatController[] = [classic, walker, grey];
 let active: CatController = walker;
 
 let lastCursor = { x: 0, y: 0, t: 0 };
@@ -30,24 +27,17 @@ let cachedWin = { x: 0, y: 0, w: 180, h: 180, scale: 1, t: 0 };
 
 function loadCatKind(): CatKind {
   const raw = localStorage.getItem(CAT_KEY);
-  if (raw === "classic" || raw === "grey" || raw === "walker") return raw;
-  return "walker";
-}
-
-function catFor(kind: CatKind): CatController {
-  if (kind === "classic") return classic;
-  if (kind === "grey") return grey;
-  return walker;
+  return raw === "classic" ? "classic" : "walker";
 }
 
 async function setActiveCat(kind: CatKind) {
   localStorage.setItem(CAT_KEY, kind);
-  for (const cat of cats) cat.hide();
-  active = catFor(kind);
+  classic.hide();
+  walker.hide();
+  active = kind === "classic" ? classic : walker;
   active.show();
   active.setState(machine.state);
-  // Grey and walker both self-move; classic follows the cursor window.
-  await invoke("set_walker_mode", { walker: kind !== "classic" });
+  await invoke("set_walker_mode", { walker: kind === "walker" });
 }
 
 function applyState(state: PetState) {
@@ -186,17 +176,19 @@ interface MousePos {
 }
 
 async function boot() {
-  for (const cat of cats) cat.mount(root);
+  classic.mount(root);
+  walker.mount(root);
 
   const kind = loadCatKind();
   await setActiveCat(kind);
   applyState(machine.state);
 
-  for (const cat of cats) {
-    bindDrag(cat.getElement() as HTMLElement);
-    bindPointer(cat.getElement() as HTMLElement);
-    bindContextMenu(cat.getElement() as HTMLElement);
-  }
+  bindDrag(classic.getElement() as HTMLElement);
+  bindDrag(walker.getElement() as HTMLElement);
+  bindPointer(classic.getElement() as HTMLElement);
+  bindPointer(walker.getElement() as HTMLElement);
+  bindContextMenu(classic.getElement() as HTMLElement);
+  bindContextMenu(walker.getElement() as HTMLElement);
 
   await restorePosition();
 
@@ -244,10 +236,6 @@ async function boot() {
       await setActiveCat("walker");
       return;
     }
-    if (action === "cat-grey") {
-      await setActiveCat("grey");
-      return;
-    }
     if (action) {
       machine.dispatch({ type: "AGENT", event: action });
     }
@@ -258,8 +246,7 @@ async function boot() {
     if (
       !menu.contains(t) &&
       !t.closest("#cat-classic") &&
-      !t.closest("#cat-walker") &&
-      !t.closest("#cat-grey")
+      !t.closest("#cat-walker")
     ) {
       if (!menu.classList.contains("hidden")) {
         menu.classList.add("hidden");

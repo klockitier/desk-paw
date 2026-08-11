@@ -5,12 +5,18 @@ import {
   LogicalPosition,
 } from "@tauri-apps/api/window";
 import type { PetState } from "../state";
-import type { CatController, CatKind } from "./types";
-import type { Facing, SpritePack, WalkerOptions } from "./sprite-pack";
-import * as walkerSprites from "./sprites";
+import type { CatController } from "./types";
+import {
+  FRAME_HEIGHT,
+  FRAME_WIDTH,
+  framesOf,
+  preload,
+  resolveAnimation,
+  type Facing,
+} from "./sprites";
 
 /** Base animation per state; the facing suffix is added at draw time. */
-const DEFAULT_STATE_ANIMATION: Record<PetState, string> = {
+const STATE_ANIMATION: Record<PetState, string> = {
   IDLE: "idle",
   BLINKING: "idle",
   WATCHING_CURSOR: "idle",
@@ -37,7 +43,6 @@ const FRAME_MS: Record<string, number> = {
   typing_calm: 111, // 9 fps — unhurried work
   typing_aggressive: 83, // 12 fps — noticeably faster than calm
   typing_exhausted: 500,
-  working: 140,
   happy: 170,
   dragged: 200,
   overheated: 260,
@@ -74,21 +79,8 @@ const RESTING_STATES: PetState[] = [
   "OVERHEATED",
 ];
 
-const WALKER_PACK: SpritePack = {
-  frameWidth: walkerSprites.FRAME_WIDTH,
-  frameHeight: walkerSprites.FRAME_HEIGHT,
-  preload: walkerSprites.preload,
-  framesOf: walkerSprites.framesOf,
-  resolveAnimation: walkerSprites.resolveAnimation,
-};
-
 export class WalkerCat implements CatController {
-  kind: CatKind;
-  private mountSelector: string;
-  private pack: SpritePack;
-  private stateAnimation: Record<PetState, string>;
-  private preferSideFacing: boolean;
-
+  kind = "walker" as const;
   private wrap!: HTMLElement;
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
@@ -128,23 +120,22 @@ export class WalkerCat implements CatController {
 
   private appWindow = getCurrentWindow();
 
-  constructor(options?: Partial<WalkerOptions>) {
-    this.kind = options?.kind ?? "walker";
-    this.mountSelector = options?.mountSelector ?? "#cat-walker";
-    this.pack = options?.pack ?? WALKER_PACK;
-    this.stateAnimation = { ...DEFAULT_STATE_ANIMATION, ...options?.stateAnimation };
-    this.preferSideFacing = options?.preferSideFacing ?? false;
-    if (this.preferSideFacing) this.facing = "right";
-  }
-
   mount(root: HTMLElement): void {
-    this.wrap = root.querySelector(this.mountSelector) as HTMLElement;
+    this.wrap = root.querySelector("#cat-walker") as HTMLElement;
     this.canvas = this.wrap.querySelector("canvas") as HTMLCanvasElement;
-    this.applyFrameSize();
+    this.canvas.width = FRAME_WIDTH;
+    this.canvas.height = FRAME_HEIGHT;
+    // frame size comes from the extractor, so CSS follows the manifest
+    for (const el of [this.wrap, this.canvas]) {
+      el.style.width = `${FRAME_WIDTH}px`;
+      el.style.height = `${FRAME_HEIGHT}px`;
+    }
     this.ctx = this.canvas.getContext("2d")!;
     this.ctx.imageSmoothingEnabled = false;
+    // Keep the Rust click-through hit box in step with the generated canvas.
+    void invoke("set_cat_size", { w: FRAME_WIDTH, h: FRAME_HEIGHT });
 
-    void this.pack.preload().then(() => {
+    void preload().then(() => {
       this.ready = true;
       this.draw();
     });
@@ -152,22 +143,10 @@ export class WalkerCat implements CatController {
 
   show(): void {
     this.wrap.classList.remove("hidden");
-    this.applyFrameSize();
   }
 
   hide(): void {
     this.wrap.classList.add("hidden");
-  }
-
-  private applyFrameSize(): void {
-    const { frameWidth: w, frameHeight: h } = this.pack;
-    this.canvas.width = w;
-    this.canvas.height = h;
-    for (const el of [this.wrap, this.canvas]) {
-      el.style.width = `${w}px`;
-      el.style.height = `${h}px`;
-    }
-    void invoke("set_cat_size", { w, h });
   }
 
   setState(state: PetState): void {
@@ -230,10 +209,7 @@ export class WalkerCat implements CatController {
   }
 
   onLocalPointer(offsetX: number, offsetY: number): number {
-    return Math.hypot(
-      offsetX - this.pack.frameWidth / 2,
-      offsetY - this.pack.frameHeight / 2,
-    );
+    return Math.hypot(offsetX - FRAME_WIDTH / 2, offsetY - FRAME_HEIGHT / 2);
   }
 
   async tick(now: number): Promise<void> {
@@ -257,11 +233,7 @@ export class WalkerCat implements CatController {
       // Standing still is not being stuck — the next walk gets a fresh timer.
       this.progress.at = 0;
       if (!this.stillSince) this.stillSince = now;
-      if (
-        !this.preferSideFacing &&
-        this.facing !== "front" &&
-        now - this.stillSince > FACE_FRONT_AFTER_MS
-      ) {
+      if (this.facing !== "front" && now - this.stillSince > FACE_FRONT_AFTER_MS) {
         this.facing = "front";
       }
     }
@@ -271,7 +243,7 @@ export class WalkerCat implements CatController {
   }
 
   hitSize(): { w: number; h: number } {
-    return { w: this.pack.frameWidth, h: this.pack.frameHeight };
+    return { w: FRAME_WIDTH, h: FRAME_HEIGHT };
   }
 
   getElement(): HTMLElement {
@@ -312,7 +284,7 @@ export class WalkerCat implements CatController {
     if (this.moving && !RESTING_STATES.includes(this.state)) {
       return this.running ? "run" : "walk";
     }
-    return this.stateAnimation[this.state] ?? "idle";
+    return STATE_ANIMATION[this.state] ?? "idle";
   }
 
   /**
@@ -325,12 +297,11 @@ export class WalkerCat implements CatController {
   }
 
   private renderFacing(base: string): Facing {
-    if (this.preferSideFacing && this.facing === "front") return this.sideFacing;
     if (this.facing === "front" && base.startsWith("typing_")) return this.sideFacing;
     // The sheet only has one side pose for happy, which freezes for the whole
     // reaction; the front pose has two frames, and facing the user on a click reads
     // better anyway.
-    if (base === "happy" && !this.preferSideFacing) return "front";
+    if (base === "happy") return "front";
     return this.facing;
   }
 
@@ -352,9 +323,7 @@ export class WalkerCat implements CatController {
 
     // During a hop, drive frames from hop progress so crouch→peak→land syncs
     if (this.hop && (base === "jump_up" || base === "jump_down")) {
-      const frames = this.pack.framesOf(
-        this.pack.resolveAnimation(base, this.renderFacing(base)),
-      );
+      const frames = framesOf(resolveAnimation(base, this.renderFacing(base)));
       if (frames.length) {
         const t = Math.min(1, (now - this.hop.started) / HOP_DURATION_MS);
         this.frame = Math.min(frames.length - 1, Math.floor(t * frames.length));
@@ -362,20 +331,15 @@ export class WalkerCat implements CatController {
       return;
     }
 
-    const count = this.pack.framesOf(
-      this.pack.resolveAnimation(base, this.renderFacing(base)),
-    ).length;
+    const count = framesOf(resolveAnimation(base, this.renderFacing(base))).length;
     this.frame = count ? (this.frame + 1) % count : 0;
   }
 
   private draw(): void {
     if (!this.ready) return;
     const base = this.currentBase();
-    const frames = this.pack.framesOf(
-      this.pack.resolveAnimation(base, this.renderFacing(base)),
-    );
-    const { frameWidth: w, frameHeight: h } = this.pack;
-    this.ctx.clearRect(0, 0, w, h);
+    const frames = framesOf(resolveAnimation(base, this.renderFacing(base)));
+    this.ctx.clearRect(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
     const img = frames[this.frame % Math.max(1, frames.length)];
     if (img) this.ctx.drawImage(img, 0, 0);
   }
