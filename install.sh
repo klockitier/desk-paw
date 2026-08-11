@@ -65,6 +65,11 @@ fi
 
 echo "→ Installing to ${DEST}…"
 if [[ -e "$DEST" ]]; then
+  # A running instance keeps the old code loaded — `open` on an already-running
+  # app just refocuses it instead of relaunching, so an update would silently
+  # never take effect until the user thought to quit it manually.
+  osascript -e 'quit app "Desk Paw"' >/dev/null 2>&1 || true
+  pkill -f "${DEST}/Contents/MacOS/" >/dev/null 2>&1 || true
   rm -rf "$DEST"
 fi
 ditto "$src_app" "$DEST" || die "Could not copy app into /Applications (permissions?)."
