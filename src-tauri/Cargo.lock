@@ -571,7 +571,7 @@ dependencies = [
 
 [[package]]
 name = "desk-paw"
-version = "0.1.2"
+version = "0.1.4"
 dependencies = [
  "objc",
  "serde",
